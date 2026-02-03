@@ -15,6 +15,8 @@ Short description of what the extension does and why it is useful.
 Click the puzzle piece icon and launch the extension.
 
 ## Screenshots
+<p align="center"><em>Click manage extensions</em></p>
+
 <p align="center">
   <img src="./readmeassets/Screenshot%202026-02-03%20at%202.17.40 PM.png" alt="Extension Manage Popup" width="400" />
 </p>
