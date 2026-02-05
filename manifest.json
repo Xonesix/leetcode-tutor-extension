@@ -1,10 +1,23 @@
 {
-  "name": "Hello Extensions",
-  "description": "Base Level Extension",
+  "name": "LeetCode Tutor",
+  "description": "AI tutor and mock interviewer for LeetCode problems.",
   "version": "1.0",
   "manifest_version": 3,
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*", 
+    "https://api.openai.com/*", 
+    "https://api.anthropic.com/*"
+    ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "action": {
-    "default_popup": "hello.html",
-    "default_icon": "hello_extensions.png"
-  }
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html"
 }
