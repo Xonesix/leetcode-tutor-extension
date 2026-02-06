@@ -18,20 +18,20 @@
   ],
 
   "options_ui": {
-    "page": "options.html",
+    "page": "options/options.html",
     "open_in_tab": true
   },
 
   "action": {
-    "default_popup": "hello.html"
+    "default_popup": "popup/hello.html"
   },
 
   "content_scripts": [
     {
       "matches": ["https://leetcode.com/problems/*"],
-      "js": ["injected_js/content.js"]
+      "js": ["content/content.js"]
     }
   ],
 
-  "options_page": "options.html"
+  "options_page": "options/options.html"
 }
