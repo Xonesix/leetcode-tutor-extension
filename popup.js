@@ -4,10 +4,12 @@ document.getElementById("start-tutoring-button").addEventListener("click", async
   const response = await chrome.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
 
   const output = document.getElementById("output");
+  const codeOutput = document.getElementById("code-output");
   if (response?.title) {
     output.innerHTML =
       `<strong>${response.title}</strong> (${response.difficulty})<br><br>` +
       response.description;
+    codeOutput.textContent = response.code;
   } else {
     output.textContent = "Could not read question data. Make sure you're on a LeetCode problem page.";
   }

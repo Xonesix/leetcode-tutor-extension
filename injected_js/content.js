@@ -23,10 +23,16 @@ function scrapeQuestion() {
   const descriptionEl = document.querySelector(
     'div[data-track-load="description_content"]'
   );
+  
+  // Code: user's code from the Monaco editor
+  const codeContentEl = document.querySelector(
+    'div.view-lines.monaco-mouse-cursor-text'
+  );
 
   return {
     title: titleEl?.innerText?.trim() ?? "Could not find title",
     difficulty: difficultyEl?.innerText?.trim() ?? "Unknown",
     description: descriptionEl?.innerText?.trim() ?? "Could not find description",
+    code: codeContentEl?.innerText?.trim() ?? "Could not find code",
   };
 }
