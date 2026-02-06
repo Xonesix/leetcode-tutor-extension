@@ -1,17 +1,26 @@
 {
   "name": "LeetCode Interview Coach",
-  "description": "Gives voice advice like a real coding interview",
+  "description": "AI tutor and mock interviewer for LeetCode problems.",
   "version": "1.0",
   "manifest_version": 3,
 
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
 
   "host_permissions": [
-    "https://leetcode.com/*"
+    "https://leetcode.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*"
   ],
+
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
 
   "action": {
     "default_popup": "hello.html"
@@ -22,5 +31,7 @@
       "matches": ["https://leetcode.com/problems/*"],
       "js": ["injected_js/content.js"]
     }
-  ]
+  ],
+
+  "options_page": "options.html"
 }
