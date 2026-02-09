@@ -15,6 +15,8 @@
 
 ## Files
 - **manifest.json** — MV3 config; injects `content.js` on LeetCode problem pages
-- **hello.html** — Popup UI with start button and output area
-- **popup.js** — Sends message to content script, displays response
-- **injected_js/content.js** — Scrapes question data from the LeetCode DOM
+- **popup/hello.html** — Popup UI with start button and output area
+- **popup/popup.js** — Sends message to content script, displays response
+- **content/content.js** — Scrapes question data from the LeetCode DOM (injected into page)
+- **options/options.html** — Settings page for API key configuration
+- **options/options.js** — Handles provider selection and key storage

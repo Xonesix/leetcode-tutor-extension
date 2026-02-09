@@ -14,3 +14,7 @@ document.getElementById("start-tutoring-button").addEventListener("click", async
     output.textContent = "Could not read question data. Make sure you're on a LeetCode problem page.";
   }
 });
+
+document.getElementById("open-settings").addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
+});
