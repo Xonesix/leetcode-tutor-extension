@@ -4,8 +4,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "START_INTERVIEW") {
     const data = scrapeQuestion();
     sendResponse(data);
+    return true;
   }
-  return true;
 });
 
 function scrapeQuestion() {
