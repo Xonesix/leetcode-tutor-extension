@@ -1,37 +1,63 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    body {
-      width: 250px;
-      padding: 15px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center;
-      background-color: #ffffff;
-    }
-    h3 { margin-bottom: 10px; color: #333; }
-    p { font-size: 13px; color: #666; margin-bottom: 20px; }
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      body { 
+        width: 400px; 
+        padding: 15px; 
+        font-family: sans-serif; 
+      }
+      h2 {
+        margin-top: 0;
+        color: #333;
+      }
+      .mode-btn { 
+        width: 100%; 
+        padding: 10px; 
+        margin-bottom: 8px; 
+        cursor: pointer; 
+        border-radius: 5px; 
+        border: 1px solid #ccc; 
+        background: #f8f9fa; 
+        font-size: 14px;
+        transition: background-color 0.2s;
+      }
+      .mode-btn:hover { 
+        background: #e2e6ea; 
+      }
+      #output { 
+        margin-top: 15px; 
+        font-size: 14px; 
+        white-space: pre-wrap; 
+        line-height: 1.4; 
+        color: #444;
+      }
+      .settings-btn {
+        width: 100%;
+        padding: 8px;
+        background: none;
+        border: none;
+        color: #0066cc;
+        text-decoration: underline;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>LeetCoach</h2>
     
-    .btn {
-      background-color: #4A90E2;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      width: 100%;
-      transition: background 0.3s;
-    }
-    .btn:hover { background-color: #357ABD; }
-  </style>
-</head>
-<body>
-  <h3>Leetcode AI Tutor</h3>
-  <p>To use this extension on LeetCode, please configure your AI provider.</p>
-  
-  <button id="open-settings" class="btn">Open Settings</button>
+    <button id="btn-tutor" class="mode-btn">🧠 Step-by-Step Tutor</button>
+    <button id="btn-interview" class="mode-btn">👔 Mock Interviewer</button>
+    <button id="btn-solution" class="mode-btn">💡 Direct Solution</button>
+    
+    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+    
+    <div id="output">Waiting for action...</div>
+    
+    <button id="open-settings" class="settings-btn">⚙️ Settings</button>
 
-  <script src="popup.js"></script>
-</body>
+    <script src="popup.js"></script>
+  </body>
 </html>
