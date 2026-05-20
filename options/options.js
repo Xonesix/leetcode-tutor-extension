@@ -13,10 +13,16 @@ document.querySelectorAll('.provider-btn').forEach(button => {
     selectedProvider = button.dataset.provider;
     
     // Update UI for chosen provider
-    providerTitle.innerText = selectedProvider === 'gemini' ? "Gemini Settings" : "Claude Settings";
-    helpText.innerHTML = selectedProvider === 'gemini' 
-      ? 'Get your key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>' 
-      : 'Get your key from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>';
+    if (selectedProvider === 'gemini') {
+      providerTitle.innerText = "Gemini Settings";
+      helpText.innerHTML = 'Get your key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>';
+    } else if (selectedProvider === 'claude') {
+      providerTitle.innerText = "Claude Settings";
+      helpText.innerHTML = 'Get your key from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>';
+    } else if (selectedProvider === 'openai') {
+      providerTitle.innerText = "OpenAI Settings";
+      helpText.innerHTML = 'Get your key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>';
+    }
 
     // Show step 2
     step1.classList.add('hidden');
