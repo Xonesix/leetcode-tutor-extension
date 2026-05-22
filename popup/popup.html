@@ -118,15 +118,104 @@
       #output { 
         margin-top: 15px; 
         font-size: 14px; 
-        white-space: pre-wrap; 
-        line-height: 1.5; 
-        color: var(--secondary-text-color);
+        line-height: 1.6; 
+        color: var(--text-color);
         background: var(--btn-bg);
         padding: 12px;
         border-radius: var(--border-radius);
         min-height: 60px;
         border: 1px solid var(--btn-border);
+        overflow-y: auto;
+        max-height: 400px;
       }
+
+      #output h1, #output h2, #output h3 {
+        margin-top: 16px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        line-height: 1.25;
+        color: var(--text-color);
+      }
+
+      #output h1 { font-size: 1.2em; border-bottom: 1px solid var(--btn-border); padding-bottom: 4px; }
+      #output h2 { font-size: 1.1em; }
+      #output h3 { font-size: 1.0em; }
+
+      #output p { margin-bottom: 10px; }
+
+      #output code {
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        background-color: rgba(175, 184, 193, 0.2);
+        padding: 0.2em 0.4em;
+        border-radius: 6px;
+        font-size: 85%;
+      }
+
+      #output .code-block-container {
+        margin: 12px 0;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid var(--btn-border);
+        background-color: #0d1117; /* Dark background for code blocks */
+      }
+
+      #output .code-block-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 12px;
+        background-color: #161b22;
+        border-bottom: 1px solid var(--btn-border);
+        font-size: 12px;
+        color: #8b949e;
+      }
+
+      #output .copy-code-btn {
+        background: none;
+        border: 1px solid #30363d;
+        border-radius: 4px;
+        color: #8b949e;
+        cursor: pointer;
+        padding: 2px 8px;
+        font-size: 11px;
+        transition: all 0.2s;
+      }
+
+      #output .copy-code-btn:hover {
+        color: #c9d1d9;
+        background-color: #30363d;
+      }
+
+      #output .copy-code-btn.success {
+        color: #3fb950;
+        border-color: #3fb950;
+      }
+
+      #output pre {
+        margin: 0;
+        padding: 12px;
+        overflow-x: auto;
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #e6edf3;
+      }
+
+      #output pre code {
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+        font-size: inherit;
+        color: inherit;
+        white-space: pre;
+      }
+
+      #output ul, #output ol {
+        padding-left: 20px;
+        margin-bottom: 10px;
+      }
+
+      #output li { margin-bottom: 4px; }
     </style>
   </head>
   <body>
@@ -141,7 +230,9 @@
     <button id="btn-interview" class="mode-btn">👔 Mock Interviewer</button>
     <button id="btn-solution" class="mode-btn">💡 Direct Solution</button>
     
-    <div id="output">Waiting for action...</div>
+    <div id="output">
+      <div id="output-content">Waiting for action...</div>
+    </div>
 
     <script src="popup.js"></script>
   </body>
