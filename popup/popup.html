@@ -3,10 +3,18 @@
   <head>
     <meta charset="UTF-8">
     <style>
-      body { 
-        width: 400px; 
-        padding: 15px; 
-        font-family: sans-serif; 
+      body {
+        width: 400px;
+        margin: 0;
+        padding: 10px;
+        font-family: sans-serif;
+        background: #e8e8e8;
+      }
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.12);
       }
       h2 {
         margin-top: 0;
@@ -26,12 +34,38 @@
       .mode-btn:hover { 
         background: #e2e6ea; 
       }
-      #output { 
-        margin-top: 15px; 
-        font-size: 14px; 
-        white-space: pre-wrap; 
-        line-height: 1.4; 
+      #output {
+        margin-top: 15px;
+        font-size: 14px;
+        white-space: pre-wrap;
+        line-height: 1.4;
         color: #444;
+      }
+      .mic-btn {
+        width: 100%;
+        padding: 10px;
+        margin-top: 12px;
+        cursor: pointer;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        background: #f0f7ff;
+        font-size: 14px;
+        transition: background-color 0.2s;
+      }
+      .mic-btn:hover { background: #d6e8ff; }
+      .mic-btn.recording {
+        background: #ffe0e0;
+        border-color: #d33;
+        color: #a00;
+        animation: pulse 1.2s infinite;
+      }
+      .mic-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(220, 50, 50, 0.5); }
+        50%      { box-shadow: 0 0 0 6px rgba(220, 50, 50, 0); }
       }
       .settings-btn {
         width: 100%;
@@ -46,17 +80,21 @@
     </style>
   </head>
   <body>
-    <h2>LeetCoach</h2>
-    
-    <button id="btn-tutor" class="mode-btn">🧠 Step-by-Step Tutor</button>
-    <button id="btn-interview" class="mode-btn">👔 Mock Interviewer</button>
-    <button id="btn-solution" class="mode-btn">💡 Direct Solution</button>
-    
-    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-    
-    <div id="output">Waiting for action...</div>
-    
-    <button id="open-settings" class="settings-btn">⚙️ Settings</button>
+    <div class="card">
+      <h2>LeetCoach</h2>
+
+      <button id="btn-tutor" class="mode-btn">🧠 Step-by-Step Tutor</button>
+      <button id="btn-interview" class="mode-btn">👔 Mock Interviewer</button>
+      <button id="btn-solution" class="mode-btn">💡 Direct Solution</button>
+
+      <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+
+      <div id="output">Waiting for action...</div>
+
+      <button id="btn-mic" class="mic-btn">🎤 Ask by Voice</button>
+
+      <button id="open-settings" class="settings-btn">⚙️ Settings</button>
+    </div>
 
     <script src="popup.js"></script>
   </body>
