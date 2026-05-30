@@ -9,30 +9,50 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 function scrapeQuestion() {
-  // Title: anchor inside the title container
-  const titleEl = document.querySelector(
-    'div.text-title-large a[href^="/problems/"]'
-  );
+  const isNeetCode = window.location.hostname.includes("neetcode.io");
 
-  // Difficulty: element whose class contains "text-difficulty-"
-  const difficultyEl = document.querySelector(
-    '[class*="text-difficulty-"]'
-  );
+  if (isNeetCode) {
+    // NeetCode Selectors
+    const titleEl = document.querySelector("h1");
+    
+    // Difficulty: Often has text Easy/Medium/Hard in a specific color class
+    const difficultyEl = document.querySelector(".text-green-500, .text-yellow-500, .text-red-500");
 
-  // Description: stable data attribute on the content wrapper
-  const descriptionEl = document.querySelector(
-    'div[data-track-load="description_content"]'
-  );
-  
-  // Code: user's code from the Monaco editor
-  const codeContentEl = document.querySelector(
-    'div.view-lines.monaco-mouse-cursor-text'
-  );
+    // Description: NeetCode uses "prose" or "markdown" classes
+    const descriptionEl = document.querySelector(".prose, [class*='markdown']");
 
-  return {
-    title: titleEl?.innerText?.trim() ?? "Could not find title",
-    difficulty: difficultyEl?.innerText?.trim() ?? "Unknown",
-    description: descriptionEl?.innerText?.trim() ?? "Could not find description",
-    code: codeContentEl?.innerText?.trim() ?? "Could not find code",
-  };
+    // Code: Monaco editor
+    const codeContentEl = document.querySelector(".monaco-editor .view-lines");
+
+    return {
+      title: titleEl?.innerText?.trim() ?? "Could not find NeetCode title",
+      difficulty: difficultyEl?.innerText?.trim() ?? "Unknown",
+      description: descriptionEl?.innerText?.trim() ?? "Could not find NeetCode description",
+      code: codeContentEl?.innerText?.trim() ?? "Could not find NeetCode code",
+    };
+  } else {
+    // LeetCode Selectors
+    const titleEl = document.querySelector(
+      'div.text-title-large a[href^="/problems/"]'
+    );
+
+    const difficultyEl = document.querySelector(
+      '[class*="text-difficulty-"]'
+    );
+
+    const descriptionEl = document.querySelector(
+      'div[data-track-load="description_content"]'
+    );
+    
+    const codeContentEl = document.querySelector(
+      'div.view-lines.monaco-mouse-cursor-text'
+    );
+
+    return {
+      title: titleEl?.innerText?.trim() ?? "Could not find LeetCode title",
+      difficulty: difficultyEl?.innerText?.trim() ?? "Unknown",
+      description: descriptionEl?.innerText?.trim() ?? "Could not find LeetCode description",
+      code: codeContentEl?.innerText?.trim() ?? "Could not find LeetCode code",
+    };
+  }
 }

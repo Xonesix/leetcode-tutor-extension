@@ -24,17 +24,17 @@ async function handleAICall(scrapedData, mode, userQuestion) {
         let systemPrompt = "";
         let userMessage = problemContext;
         if (mode === "tutor") {
-            systemPrompt = "You are a leetcode tutor. Give exactly one hint per question, and only provide the next step to solve the problem. Do not give the full solution. If the user asks for another hint, provide the next step. Be encouraging and supportive.";
+            systemPrompt = "You are an expert coding tutor. Give exactly one hint per question, and only provide the next step to solve the problem. Do not give the full solution. If the user asks for another hint, provide the next step. Be encouraging and supportive.";
         }
         else if (mode === "interview") {
-            systemPrompt = "You are a strict technical interviewer for LeetCode problems. Review the user's code and provide feedback on correctness, efficiency, and style. Be critical but constructive. Allow the user to ask follow-up questions.";
+            systemPrompt = "You are a strict technical interviewer. Review the user's code and provide feedback on correctness, efficiency, and style. Be critical but constructive. Allow the user to ask follow-up questions.";
         }
         else if (mode === "solution") {
-            systemPrompt = "You are a leetcode solution explainer. Provide a clear and concise explanation of the optimal solution for the given problem. Include time and space complexity analysis.";
+            systemPrompt = "You are a coding solution explainer. Provide a clear and concise explanation of the optimal solution for the given problem. Include time and space complexity analysis.";
         }
         else if (mode === "ask") {
             // Voice question: response will be read aloud, so keep it concise and plain-text friendly
-            systemPrompt = "You are a helpful LeetCode coach answering a spoken question. Your reply will be read aloud, so be concise (aim for 2-5 sentences), use plain prose without code blocks or markdown formatting, and answer directly. Do not give away the full solution unless the user explicitly asks for it.";
+            systemPrompt = "You are a helpful coding coach answering a spoken question. Your reply will be read aloud, so be concise (aim for 2-5 sentences), use plain prose without code blocks or markdown formatting, and answer directly. Do not give away the full solution unless the user explicitly asks for it.";
             userMessage = `Problem the user is working on:\n${problemContext}\n\nThe user's spoken question: "${userQuestion || ''}"`;
         }
 

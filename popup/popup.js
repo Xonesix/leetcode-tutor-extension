@@ -1,14 +1,14 @@
 // ─── Mode buttons (one-shot: scrape → ask AI → display + speak) ─────────────
 async function runMode(mode) {
   const outputEl = document.getElementById("output");
-  outputEl.textContent = "Scraping LeetCode page...";
+  outputEl.textContent = "Scraping page...";
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     const scrapedData = await chrome.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
 
     if (!scrapedData || !scrapedData.title) {
-      outputEl.textContent = "Could not read question data. Make sure you are on a LeetCode problem page.";
+      outputEl.textContent = "Could not read question data. Make sure you are on a supported problem page.";
       return;
     }
 
@@ -27,7 +27,7 @@ async function runMode(mode) {
       speakResponse(aiResponse.answer);
     }
   } catch (err) {
-    outputEl.textContent = "An error occurred. Make sure you are on a LeetCode page and try refreshing the page.";
+    outputEl.textContent = "An error occurred. Make sure you are on a supported page and try refreshing the page.";
     console.error("Popup Error:", err);
   }
 }
@@ -173,7 +173,7 @@ async function handleVoiceQuestion(blob, openaiKey) {
     const scrapedData = await chrome.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
 
     if (!scrapedData || !scrapedData.title) {
-      outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><br>Could not read LeetCode page — open a problem and try again.`;
+      outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><br>Could not read page data — open a supported problem page and try again.`;
       return;
     }
 
