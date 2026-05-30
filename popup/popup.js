@@ -1,6 +1,13 @@
 // ─── Mode buttons (one-shot: scrape → ask AI → display + speak) ─────────────
-async function runMode(mode) {
+async function runMode(mode, userQuestion = null) {
   const outputEl = document.getElementById("output");
+  const nextHintBtn = document.getElementById("btn-next-hint");
+  
+  // Hide next hint button at the start of any new request
+  if (!userQuestion) {
+    nextHintBtn.style.display = "none";
+  }
+
   outputEl.textContent = "Scraping page...";
 
   try {
@@ -17,14 +24,26 @@ async function runMode(mode) {
     const aiResponse = await chrome.runtime.sendMessage({
       message: "CALL_AI",
       scrapedData,
-      mode
+      mode,
+      userQuestion
     });
 
     if (aiResponse.error) {
       outputEl.textContent = `Error: ${aiResponse.error}`;
     } else {
-      outputEl.innerHTML = `<strong>AI Response:</strong><br><br>${aiResponse.answer}`;
+      if (userQuestion) {
+        // Append next hint instead of replacing
+        outputEl.innerHTML += `<br><br><strong>Next Hint:</strong><br>${aiResponse.answer}`;
+      } else {
+        outputEl.innerHTML = `<strong>AI Response:</strong><br><br>${aiResponse.answer}`;
+      }
+      
       speakResponse(aiResponse.answer);
+
+      // Show "Next Hint" button if we are in tutor mode and just got a successful response
+      if (mode === "tutor") {
+        nextHintBtn.style.display = "flex";
+      }
     }
   } catch (err) {
     outputEl.textContent = "An error occurred. Make sure you are on a supported page and try refreshing the page.";
@@ -33,6 +52,7 @@ async function runMode(mode) {
 }
 
 document.getElementById("btn-tutor").addEventListener("click", () => runMode("tutor"));
+document.getElementById("btn-next-hint").addEventListener("click", () => runMode("tutor", "Please provide the next hint."));
 document.getElementById("btn-interview").addEventListener("click", () => runMode("interview"));
 document.getElementById("btn-solution").addEventListener("click", () => runMode("solution"));
 

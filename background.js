@@ -23,6 +23,11 @@ async function handleAICall(scrapedData, mode, userQuestion) {
         // set system prompt based on mode + build the user message
         let systemPrompt = "";
         let userMessage = problemContext;
+
+        if (userQuestion) {
+            userMessage = `Problem the user is working on:\n${problemContext}\n\nUser's request: "${userQuestion}"`;
+        }
+
         if (mode === "tutor") {
             systemPrompt = "You are an expert coding tutor. Give exactly one hint per question, and only provide the next step to solve the problem. Do not give the full solution. If the user asks for another hint, provide the next step. Be encouraging and supportive.";
         }
@@ -35,7 +40,6 @@ async function handleAICall(scrapedData, mode, userQuestion) {
         else if (mode === "ask") {
             // Voice question: response will be read aloud, so keep it concise and plain-text friendly
             systemPrompt = "You are a helpful coding coach answering a spoken question. Your reply will be read aloud, so be concise (aim for 2-5 sentences), use plain prose without code blocks or markdown formatting, and answer directly. Do not give away the full solution unless the user explicitly asks for it.";
-            userMessage = `Problem the user is working on:\n${problemContext}\n\nThe user's spoken question: "${userQuestion || ''}"`;
         }
 
         // call the appropriate AI provider function and if key is missing, return an error message
