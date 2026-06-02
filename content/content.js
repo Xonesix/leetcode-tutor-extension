@@ -1,8 +1,22 @@
+// Cross-browser compatibility shim
+const browserAPI = (function() {
+    if (typeof browser !== 'undefined' && browser.runtime) {
+        return browser;
+    }
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+        return chrome;
+    }
+    return (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : {});
+})();
+
 console.log("LeetCode Tutor content script loaded");
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  console.log("[Content] Received message:", msg.type);
   if (msg.type === "START_INTERVIEW") {
+    console.log("[Content] Scraping question...");
     const data = scrapeQuestion();
+    console.log("[Content] Scraped data:", data);
     sendResponse(data);
     return true;
   }

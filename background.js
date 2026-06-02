@@ -1,16 +1,49 @@
-// check for msg from popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+// Cross-browser compatibility shim with extra robustness
+const browserAPI = (function() {
+    if (typeof browser !== 'undefined' && browser.runtime) {
+        return browser;
+    }
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+        return chrome;
+    }
+    // Fallback to whichever is defined, or an empty object to prevent immediate crash on namespace access
+    return (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : {});
+})();
+
+console.log("[Background] Initializing with API:", (typeof browser !== 'undefined' && browser.runtime) ? "browser" : "chrome fallback");
+
+if (!browserAPI.runtime) {
+    console.error("[Background] Fatal: browserAPI.runtime is undefined. Environment:", {
+        hasBrowser: typeof browser !== 'undefined',
+        hasChrome: typeof chrome !== 'undefined',
+        browserHasRuntime: typeof browser !== 'undefined' && !!browser.runtime,
+        chromeHasRuntime: typeof chrome !== 'undefined' && !!chrome.runtime
+    });
+} else {
+    // check for msg from popup
+    browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    console.log("[Background] Received message:", request.message);
     if (request.message === "CALL_AI") {
+        console.log("[Background] Handling CALL_AI request...");
         // call the AI funct then return true for the async response
-        handleAICall(request.scrapedData, request.mode, request.userQuestion).then(response => sendResponse(response)).catch(error => {sendResponse({ error: "An error occurred while calling the AI: " + error.message })});
+        handleAICall(request.scrapedData, request.mode, request.userQuestion)
+            .then(response => {
+                console.log("[Background] AI call successful, sending response...");
+                sendResponse(response);
+            })
+            .catch(error => {
+                console.error("[Background] AI call failed:", error);
+                sendResponse({ error: "An error occurred while calling the AI: " + error.message });
+            });
         return true;
     }
 });
+}
 
 async function handleAICall(scrapedData, mode, userQuestion) {
     try {
         // grab the API key from storage
-        const storageData = await chrome.storage.sync.get(['activeProvider', 'geminiKey', 'claudeKey', 'openaiKey']);
+        const storageData = await browserAPI.storage.sync.get(['activeProvider', 'geminiKey', 'claudeKey', 'openaiKey']);
         const provider = storageData.activeProvider;
 
         // set problem context for the AI based on the scraped data and mode
