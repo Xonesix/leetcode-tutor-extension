@@ -1,132 +1,97 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <title>LeetCode Tutor</title>
     <style>
       :root {
         --bg-color: #ffffff;
-        --text-color: #333333;
-        --secondary-text-color: #666666;
-        --btn-bg: #f8f9fa;
-        --btn-hover-bg: #e2e6ea;
-        --btn-border: #ccc;
-        --accent-color: #0066cc;
+        --text-color: #262626;
+        --accent-color: #ffa116;
+        --btn-bg: #f7f7f7;
+        --btn-hover-bg: #efefef;
+        --btn-border: #d0d0d0;
         --border-radius: 8px;
       }
 
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg-color: #1e1e1e;
-          --text-color: #e0e0e0;
-          --secondary-text-color: #b0b0b0;
-          --btn-bg: #2d2d2d;
-          --btn-hover-bg: #3d3d3d;
-          --btn-border: #444;
-          --accent-color: #4ea8ff;
-        }
-      }
-
-      body { 
-        width: 360px; 
-        padding: 20px; 
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      body {
+        width: 350px;
+        padding: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         background-color: var(--bg-color);
         color: var(--text-color);
-        transition: background-color 0.3s, color 0.3s;
-      }
-      
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-      }
-
-      h2 {
         margin: 0;
-        color: var(--text-color);
-        font-weight: 600;
-        font-size: 1.25rem;
       }
 
-      .icon-btn {
+      h1 {
+        font-size: 18px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .settings-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 12px;
+      }
+
+      #open-settings {
         background: none;
         border: none;
+        color: var(--accent-color);
         cursor: pointer;
-        padding: 8px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s, color 0.2s;
-        color: var(--secondary-text-color);
+        font-size: 14px;
+        text-decoration: underline;
       }
 
-      .icon-btn span {
-        display: inline-block;
-        font-size: 20px;
-        line-height: 1;
-        transition: transform 0.1s;
-      }
-
-      .icon-btn:hover {
-        background-color: var(--btn-hover-bg);
-        color: var(--text-color);
-      }
-
-      .icon-btn:hover span {
-        animation: spin 2s linear infinite;
-      }
-
-      .icon-btn:active span {
-        transform: scale(0.9);
-      }
-
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-
-      .mode-btn { 
-        width: 100%; 
-        padding: 12px; 
-        margin-bottom: 10px; 
-        cursor: pointer; 
-        border-radius: var(--border-radius); 
-        border: 1px solid var(--btn-border); 
+      .mode-btn {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--btn-border);
         background-color: var(--btn-bg);
         color: var(--text-color);
         font-size: 14px;
         font-weight: 500;
-        transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
+        transition: all 0.2s;
         display: flex;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: center;
         gap: 10px;
       }
 
-      .mode-btn:hover { 
-        background-color: var(--btn-hover-bg); 
+      .mode-btn:hover {
+        background-color: var(--btn-hover-bg);
         border-color: var(--accent-color);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       }
 
-      .mode-btn:active {
-        transform: scale(0.98);
+      #btn-next-hint {
+        background-color: #fff9f0;
+        border-color: #ffca80;
+        color: #b36b00;
+        display: none; /* Hidden until tutor mode is active */
       }
 
-      #output { 
-        margin-top: 15px; 
-        font-size: 14px; 
-        line-height: 1.6; 
-        color: var(--text-color);
-        background: var(--btn-bg);
+      #btn-next-hint:hover {
+        background-color: #fff2e0;
+      }
+
+      #output {
+        margin-top: 16px;
         padding: 12px;
+        background-color: #fafafa;
         border-radius: var(--border-radius);
         min-height: 60px;
         border: 1px solid var(--btn-border);
         overflow-y: auto;
         max-height: 400px;
+        margin-bottom: 10px;
       }
 
       #output h1, #output h2, #output h3 {
@@ -216,23 +181,59 @@
       }
 
       #output li { margin-bottom: 4px; }
+
+      .mic-btn {
+        width: 100%;
+        padding: 12px;
+        cursor: pointer;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--btn-border);
+        background-color: var(--btn-bg);
+        color: var(--text-color);
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .mic-btn:hover {
+        background-color: var(--btn-hover-bg);
+        border-color: var(--accent-color);
+      }
+
+      .mic-btn.recording {
+        background-color: #ffe0e0;
+        border-color: #d33;
+        color: #a00;
+        animation: pulse 1.2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(220, 50, 50, 0.4); }
+        50%      { box-shadow: 0 0 0 8px rgba(220, 50, 50, 0); }
+      }
     </style>
   </head>
   <body>
-    <div class="header">
-      <h2>LeetCoach</h2>
-      <button id="open-settings" class="icon-btn" title="Settings">
-        <span>&#9881;</span>
-      </button>
-    </div>
+    <h1><span>🦊</span> LeetCode Tutor</h1>
     
-    <button id="btn-tutor" class="mode-btn">🧠 Step-by-Step Tutor</button>
+    <div class="settings-row">
+      <button id="open-settings">⚙️ Settings</button>
+    </div>
+
+    <button id="btn-tutor" class="mode-btn">🧠 Socratic Tutor</button>
+    <button id="btn-next-hint" class="mode-btn">⏭️ Give Me the Next Hint</button>
     <button id="btn-interview" class="mode-btn">👔 Mock Interviewer</button>
     <button id="btn-solution" class="mode-btn">💡 Direct Solution</button>
     
     <div id="output">
       <div id="output-content">Waiting for action...</div>
     </div>
+
+    <button id="btn-mic" class="mic-btn">🎤 Ask by Voice</button>
 
     <script src="popup.js"></script>
   </body>
