@@ -6,6 +6,8 @@ async function runMode(mode, userQuestion = null) {
   const outputEl = document.getElementById("output-content");
   const nextHintBtn = document.getElementById("btn-next-hint");
   
+  console.log(`[Popup] Starting runMode: mode=${mode}, userQuestion=${userQuestion}`);
+
   // Hide next hint button at the start of any new request
   if (!userQuestion) {
     nextHintBtn.style.display = "none";
@@ -14,8 +16,17 @@ async function runMode(mode, userQuestion = null) {
   outputEl.textContent = "Scraping page...";
 
   try {
+    console.log("[Popup] Querying active tab...");
     const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
+    console.log("[Popup] Active tab found:", tab?.id);
+
+    if (!tab) {
+        throw new Error("No active tab found");
+    }
+
+    console.log("[Popup] Sending START_INTERVIEW message to content script...");
     const scrapedData = await browserAPI.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
+    console.log("[Popup] Scraped data received:", scrapedData);
 
     if (!scrapedData || !scrapedData.title) {
       outputEl.textContent = "Could not read question data. Make sure you are on a supported problem page.";
@@ -24,12 +35,14 @@ async function runMode(mode, userQuestion = null) {
 
     outputEl.textContent = `Analyzing with AI (${mode} mode)... This might take a few seconds.`;
 
+    console.log("[Popup] Sending CALL_AI message to background script...");
     const aiResponse = await browserAPI.runtime.sendMessage({
       message: "CALL_AI",
       scrapedData,
       mode,
       userQuestion
     });
+    console.log("[Popup] AI response received:", aiResponse);
 
     if (aiResponse.error) {
       outputEl.innerHTML = `<div style="color: #dc3545;">Error: ${aiResponse.error}</div>`;

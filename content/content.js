@@ -4,8 +4,11 @@ const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 console.log("LeetCode Tutor content script loaded");
 
 browserAPI.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  console.log("[Content] Received message:", msg.type);
   if (msg.type === "START_INTERVIEW") {
+    console.log("[Content] Scraping question...");
     const data = scrapeQuestion();
+    console.log("[Content] Scraped data:", data);
     sendResponse(data);
     return true;
   }

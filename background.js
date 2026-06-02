@@ -3,9 +3,19 @@ const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 // check for msg from popup
 browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    console.log("[Background] Received message:", request.message);
     if (request.message === "CALL_AI") {
+        console.log("[Background] Handling CALL_AI request...");
         // call the AI funct then return true for the async response
-        handleAICall(request.scrapedData, request.mode, request.userQuestion).then(response => sendResponse(response)).catch(error => {sendResponse({ error: "An error occurred while calling the AI: " + error.message })});
+        handleAICall(request.scrapedData, request.mode, request.userQuestion)
+            .then(response => {
+                console.log("[Background] AI call successful, sending response...");
+                sendResponse(response);
+            })
+            .catch(error => {
+                console.error("[Background] AI call failed:", error);
+                sendResponse({ error: "An error occurred while calling the AI: " + error.message });
+            });
         return true;
     }
 });
