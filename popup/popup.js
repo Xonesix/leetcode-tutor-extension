@@ -1,5 +1,13 @@
 // Cross-browser compatibility shim
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+const browserAPI = (function() {
+    if (typeof browser !== 'undefined' && browser.runtime) {
+        return browser;
+    }
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+        return chrome;
+    }
+    return (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : {});
+})();
 
 // ─── Mode buttons (one-shot: scrape → ask AI → display + speak) ─────────────
 async function runMode(mode, userQuestion = null) {

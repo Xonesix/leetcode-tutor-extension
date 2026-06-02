@@ -1,8 +1,27 @@
-// Cross-browser compatibility shim
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+// Cross-browser compatibility shim with extra robustness
+const browserAPI = (function() {
+    if (typeof browser !== 'undefined' && browser.runtime) {
+        return browser;
+    }
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+        return chrome;
+    }
+    // Fallback to whichever is defined, or an empty object to prevent immediate crash on namespace access
+    return (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : {});
+})();
 
-// check for msg from popup
-browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
+console.log("[Background] Initializing with API:", (typeof browser !== 'undefined' && browser.runtime) ? "browser" : "chrome fallback");
+
+if (!browserAPI.runtime) {
+    console.error("[Background] Fatal: browserAPI.runtime is undefined. Environment:", {
+        hasBrowser: typeof browser !== 'undefined',
+        hasChrome: typeof chrome !== 'undefined',
+        browserHasRuntime: typeof browser !== 'undefined' && !!browser.runtime,
+        chromeHasRuntime: typeof chrome !== 'undefined' && !!chrome.runtime
+    });
+} else {
+    // check for msg from popup
+    browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("[Background] Received message:", request.message);
     if (request.message === "CALL_AI") {
         console.log("[Background] Handling CALL_AI request...");
@@ -19,6 +38,7 @@ browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 });
+}
 
 async function handleAICall(scrapedData, mode, userQuestion) {
     try {
