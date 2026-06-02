@@ -1,6 +1,6 @@
 // ─── Mode buttons (one-shot: scrape → ask AI → display + speak) ─────────────
 async function runMode(mode, userQuestion = null) {
-  const outputEl = document.getElementById("output");
+  const outputEl = document.getElementById("output-content");
   const nextHintBtn = document.getElementById("btn-next-hint");
   
   // Hide next hint button at the start of any new request
@@ -29,13 +29,14 @@ async function runMode(mode, userQuestion = null) {
     });
 
     if (aiResponse.error) {
-      outputEl.textContent = `Error: ${aiResponse.error}`;
+      outputEl.innerHTML = `<div style="color: #dc3545;">Error: ${aiResponse.error}</div>`;
     } else {
+      const formatted = formatResponse(aiResponse.answer);
       if (userQuestion) {
         // Append next hint instead of replacing
-        outputEl.innerHTML += `<br><br><strong>Next Hint:</strong><br>${aiResponse.answer}`;
+        outputEl.innerHTML += `<hr><strong>Next Hint:</strong><br>${formatted}`;
       } else {
-        outputEl.innerHTML = `<strong>AI Response:</strong><br><br>${aiResponse.answer}`;
+        outputEl.innerHTML = `<strong>AI Response:</strong><br><br>${formatted}`;
       }
       
       speakResponse(aiResponse.answer);
@@ -46,10 +47,113 @@ async function runMode(mode, userQuestion = null) {
       }
     }
   } catch (err) {
-    outputEl.textContent = "An error occurred. Make sure you are on a supported page and try refreshing the page.";
+    outputEl.innerHTML = `<div style="color: #dc3545;">An error occurred. Make sure you are on a LeetCode page and try refreshing the page.</div>`;
     console.error("Popup Error:", err);
   }
 }
+
+/**
+ * Escapes HTML special characters to prevent XSS and correctly render code.
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/**
+ * Simple Markdown-like formatter for AI responses.
+ * Handles code blocks, headers, bold, and lists.
+ */
+function formatResponse(text) {
+  if (!text) return "";
+
+  // 1. Preserve code blocks by temporarily replacing them with placeholders
+  const codeBlocks = [];
+  // Use a more robust regex for code blocks that might not have language tags
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (match, lang, code) => {
+    const id = `__CODE_BLOCK_${codeBlocks.length}__`;
+    const escapedCode = escapeHtml(code.trim());
+    const displayLang = lang || 'code';
+    codeBlocks.push(`<div class="code-block-container">
+      <div class="code-block-header">
+        <span>${displayLang}</span>
+        <button class="copy-code-btn" data-code="${encodeURIComponent(code.trim())}">Copy</button>
+      </div>
+      <pre><code>${escapedCode}</code></pre>
+    </div>`);
+    return `\n${id}\n`;
+  });
+
+  // 2. Handle headers: # Header
+  text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+  text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+  text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+
+  // 3. Handle bold and italic
+  text = text.replace(/\*\*\s*(.*?)\s*\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\*\s*(.*?)\s*\*/g, '<em>$1</em>');
+
+  // 4. Handle lists (bullet and numbered)
+  // Bullet lists
+  text = text.replace(/^\s*[-*+]\s+(.*$)/gm, '<li>$1</li>');
+  // Numbered lists
+  text = text.replace(/^\s*\d+\.\s+(.*$)/gm, '<li>$1</li>');
+  
+  // Wrap contiguous <li> tags in <ul>
+  text = text.replace(/((?:<li>.*?<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // 5. Handle paragraphs (lines that aren't block-level tags)
+  const lines = text.split('\n');
+  const formattedLines = lines.map(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return "";
+    
+    // If it's a block-level element or a placeholder, don't wrap in <p>
+    if (trimmed.startsWith('<h') || 
+        trimmed.startsWith('<ul') || 
+        trimmed.startsWith('<li') || 
+        trimmed.startsWith('__CODE_BLOCK_')) {
+      return trimmed;
+    }
+    
+    return `<p>${trimmed}</p>`;
+  });
+
+  text = formattedLines.filter(line => line !== "").join('\n');
+
+  // 6. Restore code blocks
+  codeBlocks.forEach((html, i) => {
+    text = text.replace(`__CODE_BLOCK_${i}__`, () => html);
+  });
+
+  return text;
+}
+
+// Event delegation for copy buttons
+document.getElementById("output").addEventListener("click", async (e) => {
+  if (e.target && e.target.classList.contains("copy-code-btn")) {
+    const btn = e.target;
+    const code = decodeURIComponent(btn.getAttribute("data-code"));
+    
+    try {
+      await navigator.clipboard.writeText(code);
+      
+      // Visual feedback
+      const originalText = btn.textContent;
+      btn.textContent = "Copied!";
+      btn.classList.add("success");
+      
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.classList.remove("success");
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      btn.textContent = "Error";
+    }
+  }
+});
 
 document.getElementById("btn-tutor").addEventListener("click", () => runMode("tutor"));
 document.getElementById("btn-next-hint").addEventListener("click", () => runMode("tutor", "Please provide the next hint."));
@@ -110,16 +214,18 @@ let mediaRecorder = null;
 let audioChunks = [];
 const micBtn = document.getElementById('btn-mic');
 
-micBtn.addEventListener('click', async () => {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-    return;
-  }
-  await startRecording();
-});
+if (micBtn) {
+  micBtn.addEventListener('click', async () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      return;
+    }
+    await startRecording();
+  });
+}
 
 async function startRecording() {
-  const outputEl = document.getElementById('output');
+  const outputEl = document.getElementById('output-content');
   const { openaiKey } = await chrome.storage.sync.get(['openaiKey']);
   if (!openaiKey) {
     outputEl.textContent = 'Voice features need an OpenAI API key — set one in Settings.';
@@ -154,7 +260,7 @@ async function startRecording() {
 }
 
 async function handleVoiceQuestion(blob, openaiKey) {
-  const outputEl = document.getElementById('output');
+  const outputEl = document.getElementById('output-content');
   outputEl.textContent = 'Transcribing...';
 
   let transcript;
@@ -207,7 +313,8 @@ async function handleVoiceQuestion(blob, openaiKey) {
     if (aiResponse.error) {
       outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><br>Error: ${aiResponse.error}`;
     } else {
-      outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><br><strong>AI Response:</strong><br>${aiResponse.answer}`;
+      const formatted = formatResponse(aiResponse.answer);
+      outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><br><strong>AI Response:</strong><br>${formatted}`;
       speakResponse(aiResponse.answer);
     }
   } catch (err) {
