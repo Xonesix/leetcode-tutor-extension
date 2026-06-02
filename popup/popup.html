@@ -67,7 +67,7 @@
         display: inline-block;
         font-size: 20px;
         line-height: 1;
-        transition: transform 0.1s;
+        transition: transform 0.3s ease;
       }
 
       .icon-btn:hover {
@@ -76,16 +76,11 @@
       }
 
       .icon-btn:hover span {
-        animation: spin 2s linear infinite;
+        transform: rotate(90deg);
       }
 
       .icon-btn:active span {
-        transform: scale(0.9);
-      }
-
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+        transform: scale(0.9) rotate(90deg);
       }
 
       .mode-btn { 
@@ -126,6 +121,41 @@
         border-radius: var(--border-radius);
         min-height: 60px;
         border: 1px solid var(--btn-border);
+        margin-bottom: 10px;
+      }
+
+      .mic-btn {
+        width: 100%;
+        padding: 12px;
+        cursor: pointer;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--btn-border);
+        background-color: var(--btn-bg);
+        color: var(--text-color);
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .mic-btn:hover {
+        background-color: var(--btn-hover-bg);
+        border-color: var(--accent-color);
+      }
+
+      .mic-btn.recording {
+        background-color: #ffe0e0;
+        border-color: #d33;
+        color: #a00;
+        animation: pulse 1.2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(220, 50, 50, 0.4); }
+        50%      { box-shadow: 0 0 0 8px rgba(220, 50, 50, 0); }
       }
     </style>
   </head>
@@ -138,10 +168,13 @@
     </div>
     
     <button id="btn-tutor" class="mode-btn">🧠 Step-by-Step Tutor</button>
+    <button id="btn-next-hint" class="mode-btn" style="display: none; background-color: var(--btn-hover-bg); border-color: var(--accent-color);">🔍 Next Hint</button>
     <button id="btn-interview" class="mode-btn">👔 Mock Interviewer</button>
     <button id="btn-solution" class="mode-btn">💡 Direct Solution</button>
     
     <div id="output">Waiting for action...</div>
+
+    <button id="btn-mic" class="mic-btn">🎤 Ask by Voice</button>
 
     <script src="popup.js"></script>
   </body>
