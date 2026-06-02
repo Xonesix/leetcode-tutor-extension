@@ -1,3 +1,6 @@
+// Cross-browser compatibility shim
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 let selectedProvider = "";
 
 const step1 = document.getElementById('step-1');
@@ -9,7 +12,7 @@ const status = document.getElementById('status');
 
 // 1. Handle Provider Selection
 document.querySelectorAll('.provider-btn').forEach(button => {
-  button.addEventListener('click', () => {
+  button.addEventListener('click', async () => {
     selectedProvider = button.dataset.provider;
     
     // Update UI for chosen provider
@@ -30,18 +33,21 @@ document.querySelectorAll('.provider-btn').forEach(button => {
     
     // Pre-fill if key already exists
     const storageKey = `${selectedProvider}Key`;
-    chrome.storage.sync.get([storageKey], (result) => {
+    try {
+      const result = await browserAPI.storage.sync.get([storageKey]);
       if (result[storageKey]) {
         apiKeyInput.value = result[storageKey];
       } else {
         apiKeyInput.value = "";
       }
-    });
+    } catch (err) {
+      console.error("Error loading settings:", err);
+    }
   });
 });
 
 // 2. Handle Save
-document.getElementById('save').addEventListener('click', () => {
+document.getElementById('save').addEventListener('click', async () => {
   const key = apiKeyInput.value.trim();
   
   if (!key) {
@@ -54,11 +60,15 @@ document.getElementById('save').addEventListener('click', () => {
     [`${selectedProvider}Key`]: key
   };
 
-  chrome.storage.sync.set(dataToSave, () => {
+  try {
+    await browserAPI.storage.sync.set(dataToSave);
     showStatus("Settings saved successfully!", "green");
     // Optional: Close options page after short delay
     setTimeout(() => { window.close(); }, 1500);
-  });
+  } catch (err) {
+    showStatus("Error saving settings.", "red");
+    console.error("Save error:", err);
+  }
 });
 
 // 3. Navigation

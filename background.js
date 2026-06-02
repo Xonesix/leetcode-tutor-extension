@@ -1,5 +1,8 @@
+// Cross-browser compatibility shim
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 // check for msg from popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.message === "CALL_AI") {
         // call the AI funct then return true for the async response
         handleAICall(request.scrapedData, request.mode, request.userQuestion).then(response => sendResponse(response)).catch(error => {sendResponse({ error: "An error occurred while calling the AI: " + error.message })});
@@ -10,7 +13,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function handleAICall(scrapedData, mode, userQuestion) {
     try {
         // grab the API key from storage
-        const storageData = await chrome.storage.sync.get(['activeProvider', 'geminiKey', 'claudeKey', 'openaiKey']);
+        const storageData = await browserAPI.storage.sync.get(['activeProvider', 'geminiKey', 'claudeKey', 'openaiKey']);
         const provider = storageData.activeProvider;
 
         // set problem context for the AI based on the scraped data and mode

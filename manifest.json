@@ -4,6 +4,13 @@
   "version": "1.0",
   "manifest_version": 3,
 
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "leetcode-coach@xonesix.github.io",
+      "strict_min_version": "109.0"
+    }
+  },
+
   "permissions": [
     "activeTab",
     "scripting",
