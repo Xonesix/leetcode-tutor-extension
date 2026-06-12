@@ -269,6 +269,34 @@
         0%, 100% { box-shadow: 0 0 0 0 rgba(220, 50, 50, 0.4); }
         50%      { box-shadow: 0 0 0 8px rgba(220, 50, 50, 0); }
       }
+
+      .mic-row {
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      .mic-row .mic-btn {
+        flex: 1;
+      }
+
+      #mic-select {
+        padding: 0 8px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--btn-border);
+        background-color: var(--btn-bg);
+        color: var(--text-color);
+        font-size: 13px;
+        cursor: pointer;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      #mic-select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+      }
     </style>
   </head>
   <body>

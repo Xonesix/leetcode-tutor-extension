@@ -22,10 +22,10 @@ if (!browserAPI.runtime) {
 } else {
     // check for msg from popup
     browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log("[Background] Received message:", request.message);
+    console.log("[Background] Received message:", request.message || request.type);
+
     if (request.message === "CALL_AI") {
         console.log("[Background] Handling CALL_AI request...");
-        // call the AI funct then return true for the async response
         handleAICall(request.scrapedData, request.mode, request.userQuestion)
             .then(response => {
                 console.log("[Background] AI call successful, sending response...");
@@ -36,6 +36,29 @@ if (!browserAPI.runtime) {
                 sendResponse({ error: "An error occurred while calling the AI: " + error.message });
             });
         return true;
+    }
+
+    if (request.message === "MIC_START") {
+        if (typeof chrome !== 'undefined' && chrome.offscreen) {
+            ensureOffscreenDocument()
+                .then(() => new Promise(resolve => setTimeout(resolve, 150)))
+                .then(() => {
+                    chrome.runtime.sendMessage({ type: 'START_MIC_RECORDING', deviceId: request.deviceId || null });
+                    sendResponse({ ok: true });
+                })
+                .catch(err => sendResponse({ error: err.message }));
+        } else {
+            // Firefox: popup handles getUserMedia directly
+            sendResponse({ useDirectMedia: true });
+        }
+        return true;
+    }
+
+    if (request.message === "MIC_STOP") {
+        if (typeof chrome !== 'undefined' && chrome.offscreen) {
+            chrome.runtime.sendMessage({ type: 'STOP_MIC_RECORDING' });
+        }
+        return;
     }
 });
 }
@@ -100,6 +123,21 @@ async function handleAICall(scrapedData, mode, userQuestion) {
     } catch (error) {
         console.error("Error in handleAICall:", error);
         return { error: "An error occurred while processing your request. Please try again." };
+    }
+}
+
+async function ensureOffscreenDocument() {
+    const url = chrome.runtime.getURL('offscreen.html');
+    const contexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT'],
+        documentUrls: [url]
+    });
+    if (contexts.length === 0) {
+        await chrome.offscreen.createDocument({
+            url,
+            reasons: ['USER_MEDIA'],
+            justification: 'Microphone access for voice questions'
+        });
     }
 }
 

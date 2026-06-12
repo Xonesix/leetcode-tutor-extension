@@ -26,17 +26,24 @@ async function runMode(mode, userQuestion = null) {
   try {
     console.log("[Popup] Querying active tab...");
     const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
-    console.log("[Popup] Active tab found:", tab?.id);
+    console.log("[Popup] Active tab found:", tab?.id, "url:", tab?.url);
 
     if (!tab) {
         throw new Error("No active tab found");
     }
 
     console.log("[Popup] Sending START_INTERVIEW message to content script...");
-    const scrapedData = await browserAPI.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
-    console.log("[Popup] Scraped data received:", scrapedData);
+    let scrapedData;
+    try {
+      scrapedData = await browserAPI.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
+      console.log("[Popup] Scraped data received:", scrapedData);
+    } catch (msgErr) {
+      console.error("[Popup] sendMessage to content script failed:", msgErr);
+      throw msgErr;
+    }
 
     if (!scrapedData || !scrapedData.title) {
+      console.warn("[Popup] scrapedData missing or no title:", scrapedData);
       outputEl.textContent = "Could not read question data. Make sure you are on a supported problem page.";
       return;
     }
@@ -44,13 +51,19 @@ async function runMode(mode, userQuestion = null) {
     outputEl.textContent = `Analyzing with AI (${mode} mode)... This might take a few seconds.`;
 
     console.log("[Popup] Sending CALL_AI message to background script...");
-    const aiResponse = await browserAPI.runtime.sendMessage({
-      message: "CALL_AI",
-      scrapedData,
-      mode,
-      userQuestion
-    });
-    console.log("[Popup] AI response received:", aiResponse);
+    let aiResponse;
+    try {
+      aiResponse = await browserAPI.runtime.sendMessage({
+        message: "CALL_AI",
+        scrapedData,
+        mode,
+        userQuestion
+      });
+      console.log("[Popup] AI response received:", aiResponse);
+    } catch (bgErr) {
+      console.error("[Popup] sendMessage to background script failed:", bgErr);
+      throw bgErr;
+    }
 
     if (aiResponse.error) {
       outputEl.innerHTML = `<div style="color: #dc3545;">Error: ${aiResponse.error}</div>`;
@@ -72,7 +85,10 @@ async function runMode(mode, userQuestion = null) {
     }
   } catch (err) {
     outputEl.innerHTML = `<div style="color: #dc3545;">An error occurred. Make sure you are on a LeetCode page and try refreshing the page.</div>`;
-    console.error("Popup Error:", err);
+    console.error("[Popup] Caught error in runMode:", err);
+    console.error("[Popup] Error name:", err?.name);
+    console.error("[Popup] Error message:", err?.message);
+    console.error("[Popup] Error stack:", err?.stack);
   }
 }
 
@@ -233,15 +249,20 @@ async function speakResponse(text) {
   }
 }
 
-// ─── STT: record mic, transcribe via Whisper, ask AI, speak the answer ─────
-let mediaRecorder = null;
-let audioChunks = [];
-const micBtn = document.getElementById('btn-mic');
+// ─── STT: record mic via content script, transcribe via Whisper ─────────────
+// Recording runs inside the content script (web page context) so Chrome shows
+// its standard "this site wants your mic" dialog — the only approach that
+// reliably triggers a permission prompt in MV3.
 
+let isRecording = false;
+
+const micBtn = document.getElementById('btn-mic');
 if (micBtn) {
   micBtn.addEventListener('click', async () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.stop();
+    if (isRecording) {
+      setRecordingUI(false);
+      document.getElementById('output-content').textContent = 'Processing...';
+      stopRecording();
       return;
     }
     await startRecording();
@@ -256,36 +277,63 @@ async function startRecording() {
     return;
   }
 
-  let stream;
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch (err) {
-    outputEl.textContent = `Could not access microphone: ${err.message}. Allow mic access for the extension and try again.`;
+  const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
+  if (!tab) {
+    outputEl.textContent = 'Open a LeetCode or NeetCode problem page first, then try again.';
     return;
   }
 
-  audioChunks = [];
-  mediaRecorder = new MediaRecorder(stream);
-  mediaRecorder.ondataavailable = (e) => {
-    if (e.data.size > 0) audioChunks.push(e.data);
-  };
-  mediaRecorder.onstop = async () => {
-    stream.getTracks().forEach(t => t.stop());
-    micBtn.classList.remove('recording');
-    micBtn.textContent = '🎤 Ask by Voice';
-    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-    await handleVoiceQuestion(blob, openaiKey);
-  };
+  outputEl.textContent = 'Starting mic — allow access if Chrome asks...';
 
-  mediaRecorder.start();
-  micBtn.classList.add('recording');
-  micBtn.textContent = '⏹️ Stop Recording';
+  let response;
+  try {
+    response = await browserAPI.tabs.sendMessage(tab.id, { type: 'START_RECORDING' });
+  } catch (err) {
+    outputEl.textContent = 'Could not reach the page. Make sure you are on a LeetCode or NeetCode problem page.';
+    return;
+  }
+
+  if (response?.error) {
+    if (response.error === 'NotAllowedError') {
+      outputEl.textContent = 'Microphone access denied. Click the camera/mic icon in the address bar to allow it, then try again.';
+    } else {
+      outputEl.textContent = `Microphone error: ${response.message}`;
+    }
+    return;
+  }
+
+  setRecordingUI(true);
   outputEl.textContent = 'Listening... click the button again to stop.';
 }
 
+async function stopRecording() {
+  const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
+  if (tab) browserAPI.tabs.sendMessage(tab.id, { type: 'STOP_RECORDING' }).catch(() => {});
+}
+
+function setRecordingUI(recording) {
+  isRecording = recording;
+  micBtn.classList.toggle('recording', recording);
+  micBtn.textContent = recording ? '⏹️ Stop Recording' : '🎤 Ask by Voice';
+}
+
+// Receive the recorded audio from the content script
+browserAPI.runtime.onMessage.addListener(async (msg) => {
+  if (msg.type !== 'AUDIO_DATA') return;
+  setRecordingUI(false);
+
+  const { openaiKey } = await browserAPI.storage.sync.get(['openaiKey']);
+  if (!openaiKey) return;
+
+  const blob = new Blob([msg.buffer], { type: 'audio/webm' });
+  await handleVoiceQuestion(blob, openaiKey);
+});
+
 async function handleVoiceQuestion(blob, openaiKey) {
   const outputEl = document.getElementById('output-content');
-  outputEl.textContent = 'Transcribing...';
+  const log = (msg) => { outputEl.textContent = msg; };
+
+  log(`[1/4] Sending audio to Whisper... (${(blob.size / 1024).toFixed(1)} KB)`);
 
   let transcript;
   try {
@@ -299,6 +347,8 @@ async function handleVoiceQuestion(blob, openaiKey) {
       body: form
     });
 
+    log(`[2/4] Whisper responded (${resp.status}) — parsing transcript...`);
+
     if (!resp.ok) {
       outputEl.textContent = `Transcription error (${resp.status}): ${await resp.text()}`;
       return;
@@ -307,7 +357,7 @@ async function handleVoiceQuestion(blob, openaiKey) {
     const data = await resp.json();
     transcript = (data.text || '').trim();
   } catch (err) {
-    outputEl.textContent = 'Transcription failed: ' + err.message;
+    outputEl.textContent = `Transcription failed: ${err.message}`;
     return;
   }
 
@@ -316,9 +366,10 @@ async function handleVoiceQuestion(blob, openaiKey) {
     return;
   }
 
-  outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><br>Asking AI...`;
+  outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}`;
 
   try {
+    log(`[3/4] Scraping problem context...`);
     const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
     const scrapedData = await browserAPI.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
 
@@ -326,6 +377,8 @@ async function handleVoiceQuestion(blob, openaiKey) {
       outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><br>Could not read page data — open a supported problem page and try again.`;
       return;
     }
+
+    outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><small style="color:gray">[4/4] Sending to AI...</small>`;
 
     const aiResponse = await browserAPI.runtime.sendMessage({
       message: "CALL_AI",
