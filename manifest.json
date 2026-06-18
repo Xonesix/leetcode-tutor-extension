@@ -1,15 +1,8 @@
 {
-  "name": "LeetCoach Interview Assistant (Firefox)",
+  "name": "LeetCoach Interview Assistant",
   "description": "AI tutor and mock interviewer for LeetCode and NeetCode problems.",
   "version": "1.0",
   "manifest_version": 3,
-
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "leetcode-coach@xonesix.github.io",
-      "strict_min_version": "109.0"
-    }
-  },
 
   "permissions": [
     "activeTab",
@@ -36,7 +29,7 @@
   },
 
   "background": {
-    "scripts": ["background.js"]
+    "service_worker": "background.js"
   },
 
   "content_scripts": [

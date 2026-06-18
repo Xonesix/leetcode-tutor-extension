@@ -1,27 +1,7 @@
-// Cross-browser compatibility shim with extra robustness
-const browserAPI = (function() {
-    if (typeof browser !== 'undefined' && browser.runtime) {
-        return browser;
-    }
-    if (typeof chrome !== 'undefined' && chrome.runtime) {
-        return chrome;
-    }
-    // Fallback to whichever is defined, or an empty object to prevent immediate crash on namespace access
-    return (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : {});
-})();
+console.log("[Background] Initializing Chrome service worker...");
 
-console.log("[Background] Initializing with API:", (typeof browser !== 'undefined' && browser.runtime) ? "browser" : "chrome fallback");
-
-if (!browserAPI.runtime) {
-    console.error("[Background] Fatal: browserAPI.runtime is undefined. Environment:", {
-        hasBrowser: typeof browser !== 'undefined',
-        hasChrome: typeof chrome !== 'undefined',
-        browserHasRuntime: typeof browser !== 'undefined' && !!browser.runtime,
-        chromeHasRuntime: typeof chrome !== 'undefined' && !!chrome.runtime
-    });
-} else {
-    // check for msg from popup
-    browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
+// check for msg from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("[Background] Received message:", request.message);
     if (request.message === "CALL_AI") {
         console.log("[Background] Handling CALL_AI request...");
@@ -38,12 +18,11 @@ if (!browserAPI.runtime) {
         return true;
     }
 });
-}
 
 async function handleAICall(scrapedData, mode, userQuestion) {
     try {
         // grab the API key from storage
-        const storageData = await browserAPI.storage.sync.get(['activeProvider', 'geminiKey', 'claudeKey', 'openaiKey']);
+        const storageData = await chrome.storage.sync.get(['activeProvider', 'geminiKey', 'claudeKey', 'openaiKey']);
         const provider = storageData.activeProvider;
 
         // set problem context for the AI based on the scraped data and mode
