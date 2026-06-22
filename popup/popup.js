@@ -1,14 +1,3 @@
-// Cross-browser compatibility shim
-const browserAPI = (function() {
-    if (typeof browser !== 'undefined' && browser.runtime) {
-        return browser;
-    }
-    if (typeof chrome !== 'undefined' && chrome.runtime) {
-        return chrome;
-    }
-    return (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : {});
-})();
-
 // ─── Mode buttons (one-shot: scrape → ask AI → display + speak) ─────────────
 async function runMode(mode, userQuestion = null) {
   const outputEl = document.getElementById("output-content");
@@ -25,7 +14,7 @@ async function runMode(mode, userQuestion = null) {
 
   try {
     console.log("[Popup] Querying active tab...");
-    const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     console.log("[Popup] Active tab found:", tab?.id);
 
     if (!tab) {
@@ -33,7 +22,7 @@ async function runMode(mode, userQuestion = null) {
     }
 
     console.log("[Popup] Sending START_INTERVIEW message to content script...");
-    const scrapedData = await browserAPI.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
+    const scrapedData = await chrome.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
     console.log("[Popup] Scraped data received:", scrapedData);
 
     if (!scrapedData || !scrapedData.title) {
@@ -44,7 +33,7 @@ async function runMode(mode, userQuestion = null) {
     outputEl.textContent = `Analyzing with AI (${mode} mode)... This might take a few seconds.`;
 
     console.log("[Popup] Sending CALL_AI message to background script...");
-    const aiResponse = await browserAPI.runtime.sendMessage({
+    const aiResponse = await chrome.runtime.sendMessage({
       message: "CALL_AI",
       scrapedData,
       mode,
@@ -185,7 +174,7 @@ document.getElementById("btn-interview").addEventListener("click", () => runMode
 document.getElementById("btn-solution").addEventListener("click", () => runMode("solution"));
 
 document.getElementById("open-settings").addEventListener("click", () => {
-  browserAPI.runtime.openOptionsPage();
+  chrome.runtime.openOptionsPage();
 });
 
 // ─── TTS: read AI response aloud (OpenAI /v1/audio/speech) ──────────────────
@@ -193,7 +182,7 @@ let currentAudio = null;
 
 async function speakResponse(text) {
   if (!text) return;
-  const { openaiKey } = await browserAPI.storage.sync.get(['openaiKey']);
+  const { openaiKey } = await chrome.storage.sync.get(['openaiKey']);
   if (!openaiKey) return; // voice features require OpenAI key — silent no-op
 
   // Strip HTML so the model doesn't read tag names aloud
@@ -250,7 +239,7 @@ if (micBtn) {
 
 async function startRecording() {
   const outputEl = document.getElementById('output-content');
-  const { openaiKey } = await browserAPI.storage.sync.get(['openaiKey']);
+  const { openaiKey } = await chrome.storage.sync.get(['openaiKey']);
   if (!openaiKey) {
     outputEl.textContent = 'Voice features need an OpenAI API key — set one in Settings.';
     return;
@@ -319,15 +308,15 @@ async function handleVoiceQuestion(blob, openaiKey) {
   outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><br>Asking AI...`;
 
   try {
-    const [tab] = await browserAPI.tabs.query({ active: true, currentWindow: true });
-    const scrapedData = await browserAPI.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const scrapedData = await chrome.tabs.sendMessage(tab.id, { type: "START_INTERVIEW" });
 
     if (!scrapedData || !scrapedData.title) {
       outputEl.innerHTML = `<strong>You asked:</strong> ${transcript}<br><br>Could not read page data — open a supported problem page and try again.`;
       return;
     }
 
-    const aiResponse = await browserAPI.runtime.sendMessage({
+    const aiResponse = await chrome.runtime.sendMessage({
       message: "CALL_AI",
       scrapedData,
       mode: "ask",

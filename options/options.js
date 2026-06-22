@@ -1,14 +1,3 @@
-// Cross-browser compatibility shim
-const browserAPI = (function() {
-    if (typeof browser !== 'undefined' && browser.runtime) {
-        return browser;
-    }
-    if (typeof chrome !== 'undefined' && chrome.runtime) {
-        return chrome;
-    }
-    return (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : {});
-})();
-
 let selectedProvider = "";
 
 const step1 = document.getElementById('step-1');
@@ -42,7 +31,7 @@ document.querySelectorAll('.provider-btn').forEach(button => {
     // Pre-fill if key already exists
     const storageKey = `${selectedProvider}Key`;
     try {
-      const result = await browserAPI.storage.sync.get([storageKey]);
+      const result = await chrome.storage.sync.get([storageKey]);
       if (result[storageKey]) {
         apiKeyInput.value = result[storageKey];
       } else {
@@ -69,7 +58,7 @@ document.getElementById('save').addEventListener('click', async () => {
   };
 
   try {
-    await browserAPI.storage.sync.set(dataToSave);
+    await chrome.storage.sync.set(dataToSave);
     showStatus("Settings saved successfully!", "green");
     // Optional: Close options page after short delay
     setTimeout(() => { window.close(); }, 1500);
